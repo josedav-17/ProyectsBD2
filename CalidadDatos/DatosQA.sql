@@ -1,9 +1,8 @@
 
-------------- QA FULL RUN - jardineria_dw (una sola corrida)
+-- QA FULL RUN - jardineria_dw
 USE jardineria_dw;
 
-
---Infra de resultados DQ
+-- Resultados DQ
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name='dq') EXEC('CREATE SCHEMA dq');
 
 IF OBJECT_ID('dq.dq_run') IS NULL
@@ -41,7 +40,7 @@ INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,val
 SELECT @run_id,'DW','dw.DimFecha','DFECHA_001','INFO','Total filas',COUNT(*),NULL
 FROM dw.DimFecha;
 
--- rangos básicos
+-- rangos bÃ¡sicos
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
 SELECT @run_id,'DW','dw.DimFecha','DFECHA_002','ERROR','Rango invalido',COUNT(*),
        'Mes(1-12), Dia(1-31), Trimestre(1-4), SemanaAnio(1-53)'
@@ -80,12 +79,12 @@ FROM (SELECT IdClienteNK FROM dw.DimCliente GROUP BY IdClienteNK HAVING COUNT(*)
 -- requeridos
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
 SELECT @run_id,'DW','dw.DimCliente','DCLI_002','ERROR','Requeridos nulos',COUNT(*),
-       'IdClienteNK NULL o NombreCliente vacío'
+       'IdClienteNK NULL o NombreCliente vacÃ­o'
 FROM dw.DimCliente
 WHERE IdClienteNK IS NULL OR LTRIM(RTRIM(ISNULL(NombreCliente,'')))='';
 
 -- DimCategoria & DimProducto
--- categoría duplicada (NK)
+-- categorÃ­a duplicada (NK)
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
 SELECT @run_id,'DW','dw.DimCategoria','DCAT_001','ERROR','NK duplicada',COUNT(*),'IdCategoria NK duplicada'
 FROM (SELECT IdCategoriaNK FROM dw.DimCategoria GROUP BY IdCategoriaNK HAVING COUNT(*)>1) x;
@@ -98,11 +97,11 @@ FROM (SELECT IdProductoNK FROM dw.DimProducto GROUP BY IdProductoNK HAVING COUNT
 -- producto requeridos
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
 SELECT @run_id,'DW','dw.DimProducto','DPROD_002','ERROR','Requeridos nulos',COUNT(*),
-       'IdProductoNK NULL o NombreProducto vacío'
+       'IdProductoNK NULL o NombreProducto vacÃ­o'
 FROM dw.DimProducto
 WHERE IdProductoNK IS NULL OR LTRIM(RTRIM(ISNULL(NombreProducto,'')))='';
 
--- FK categoría
+-- FK categorÃ­a
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
 SELECT @run_id,'DW','dw.DimProducto','DPROD_003','ERROR','Categoria invalida',COUNT(*),
        'ClaveCategoria no existe en DimCategoria'
@@ -124,13 +123,13 @@ FROM (SELECT IdEmpleadoNK FROM dw.DimEmpleado GROUP BY IdEmpleadoNK HAVING COUNT
 -- requeridos empleado
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
 SELECT @run_id,'DW','dw.DimEmpleado','DEMP_002','ERROR','Requeridos nulos',COUNT(*),
-       'IdEmpleadoNK NULL o Nombre/Apellido1 vacíos'
+       'IdEmpleadoNK NULL o Nombre/Apellido1 vacÃ­os'
 FROM dw.DimEmpleado
 WHERE IdEmpleadoNK IS NULL
    OR LTRIM(RTRIM(ISNULL(Nombre,'')))=''
    OR LTRIM(RTRIM(ISNULL(Apellido1,'')))='';
 
--- email simple inválido
+-- email simple invÃ¡lido
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
 SELECT @run_id,'DW','dw.DimEmpleado','DEMP_003','WARN','Email invalido',COUNT(*),
        'No coincide con _@_._ o contiene espacios'
@@ -177,13 +176,13 @@ WHERE d.ClaveFecha IS NULL;
 -- cliente por pedido
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
 SELECT @run_id,'DW','dw.FactVentas','FV_007','ERROR','Varios clientes X pedido',COUNT(*),
-       'Más de un cliente por IdPedido'
+       'MÃ¡s de un cliente por IdPedido'
 FROM (SELECT IdPedido FROM dw.FactVentas GROUP BY IdPedido HAVING COUNT(DISTINCT ClaveCliente)>1) x;
 
 -- fecha de pedido por pedido
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
 SELECT @run_id,'DW','dw.FactVentas','FV_008','ERROR','Varias fechas pedido',COUNT(*),
-       'Más de una ClaveFechaPedido por IdPedido'
+       'MÃ¡s de una ClaveFechaPedido por IdPedido'
 FROM (SELECT IdPedido FROM dw.FactVentas GROUP BY IdPedido HAVING COUNT(DISTINCT ClaveFechaPedido)>1) x;
 
 
@@ -217,7 +216,7 @@ LEFT JOIN dw.DimFecha fe ON fe.ClaveFecha=f.ClaveFechaEntrega
 LEFT JOIN dw.DimFecha fx ON fx.ClaveFecha=f.ClaveFechaEsperada;
 
 
--- FactVentas - Valores & Reconciliación
+-- FactVentas - Valores & ReconciliaciÃ³n
 
 -- cantidad/precio no positivos
 INSERT INTO dq.dq_results (run_id,layer,object_name,check_id,severity,metric,value_num,value_txt)
